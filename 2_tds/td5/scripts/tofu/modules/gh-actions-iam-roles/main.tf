@@ -60,6 +60,24 @@ data "aws_iam_policy_document" "test_serverless_app" {
     actions   = ["lambda:*", "apigateway:*", "apigatewayv2:*"]
     resources = ["*"]
   }
+   statement {
+    sid       = "TofuStateS3ReadOnlyPermissions"
+    effect    = "Allow"
+    actions   = ["s3:Get*", "s3:List*"]
+    resources = [local.state_bucket_arn, "${local.state_bucket_arn}/*"]
+  }
+  statement {
+    sid       = "TofuStateDynamoReadOnlyPermissions"
+    effect    = "Allow"
+    actions   = [
+      "dynamodb:DescribeTable",
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:UpdateItem"
+    ]
+    resources = ["arn:aws:dynamodb:*:*:table/${var.tofu_state_dynamodb_table}"]
+  } 
 }
 
 resource "aws_iam_role" "lambda_deploy_plan" {
