@@ -36,7 +36,8 @@ jobs:
       - name: Install OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
-          tofu_version: 1.7.0
+          tofu_version: 1.11.2
+
 
       - name: Init
         run: tofu init -reconfigure
@@ -45,3 +46,20 @@ jobs:
         env:
           TF_VAR_name: "lambda-sample-ci-${{ github.run_id }}"
         run: tofu test
+            - name: Apply
+        env:
+          TF_VAR_name: "lambda-sample-ci-${{ github.run_id }}"
+        run: |
+          tofu apply -auto-approve
+          echo "FUNCTION_NAME=$(tofu output -raw function_name)" >> $GITHUB_ENV
+
+      - name: Invoke Lambda and assert body
+        run: |
+          aws lambda invoke \
+            --function-name "$FUNCTION_NAME" \
+            --region "${{ secrets.AWS_REGION }}" \
+            --payload '{}' \
+            out.json
+          cat out.json
+          grep -q "DevOps Labs!" out.json
+

@@ -49,7 +49,10 @@ data "aws_iam_policy_document" "test_serverless_app" {
       "iam:UpdateRole",
       "iam:PassRole",
       "iam:List*Role*",
-      "iam:Get*Role*"
+      "iam:Get*Role*",
+      "iam:PutRolePolicy",
+    "iam:DeleteRolePolicy"
+
     ]
     resources = ["arn:aws:iam::*:role/${var.lambda_base_name}*"]
   }
@@ -60,6 +63,24 @@ data "aws_iam_policy_document" "test_serverless_app" {
     actions   = ["lambda:*", "apigateway:*", "apigatewayv2:*"]
     resources = ["*"]
   }
+   statement {
+    sid       = "TofuStateS3ReadOnlyPermissions"
+    effect    = "Allow"
+    actions   = ["s3:Get*", "s3:List*"]
+    resources = [local.state_bucket_arn, "${local.state_bucket_arn}/*"]
+  }
+  statement {
+    sid       = "TofuStateDynamoReadOnlyPermissions"
+    effect    = "Allow"
+    actions   = [
+      "dynamodb:DescribeTable",
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:UpdateItem"
+    ]
+    resources = ["arn:aws:dynamodb:*:*:table/${var.tofu_state_dynamodb_table}"]
+  } 
 }
 
 resource "aws_iam_role" "lambda_deploy_plan" {
@@ -126,6 +147,19 @@ data "aws_iam_policy_document" "plan_serverless_app" {
     actions   = ["s3:Get*", "s3:List*"]
     resources = [local.state_bucket_arn, "${local.state_bucket_arn}/*"]
   }
+    statement {
+    sid       = "TofuStateDynamoLockPermissions"
+    effect    = "Allow"
+    actions   = [
+      "dynamodb:DescribeTable",
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:UpdateItem"
+    ]
+    resources = ["arn:aws:dynamodb:*:*:table/${var.tofu_state_dynamodb_table}"]
+  }
+
 }
 
 locals {
@@ -156,6 +190,7 @@ data "aws_iam_policy_document" "assume_role_policy_for_apply" {
       variable = "token.actions.githubusercontent.com:sub"
       values   = ["repo:${var.github_repo}:ref:refs/heads/main"]
     }
+
 
     condition {
       test     = "StringEquals"
