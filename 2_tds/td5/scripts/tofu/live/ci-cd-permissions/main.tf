@@ -10,7 +10,7 @@ module "oidc_provider" {
 }
 
 module "iam_roles" {
-  source = "github.com/brikis98/devops-book//ch5/tofu/modules/gh-actions-iam-roles"
+  source = "../../modules/gh-actions-iam-roles"
 
   name              = "lambda-sample"
   oidc_provider_arn = module.oidc_provider.oidc_provider_arn
