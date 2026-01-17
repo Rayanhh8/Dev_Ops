@@ -19,8 +19,8 @@ run "validate" {
   }
 
   assert {
-  condition = data.http.test_endpoint.response_body == "DevOps Labs!"
-  error_message = "Unexpected body: ${data.http.test_endpoint.response_body}"
+    condition     = data.http.test_endpoint.response_body == "DevOps Labs!"
+    error_message = "Unexpected body: ${data.http.test_endpoint.response_body}"
   }
 
 }
