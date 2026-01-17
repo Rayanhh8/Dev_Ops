@@ -154,7 +154,8 @@ data "aws_iam_policy_document" "assume_role_policy_for_apply" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:ref:refs/heads/main"]
+      values = ["repo:${var.github_repo}:*"]
+
     }
 
     condition {
