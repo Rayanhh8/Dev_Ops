@@ -3,7 +3,8 @@ provider "aws" {
 }
 
 module "function" {
-  source = "github.com/brikis98/devops-book//ch3/tofu/modules/lambda"
+  source  = "brikis98/devops/book//modules/lambda"
+  version = "1.0.0"
 
   name = var.name
 
@@ -14,15 +15,17 @@ module "function" {
   memory_size = 128
   timeout     = 5
 
+  create_url = true
+
+
   environment_variables = {
     NODE_ENV = "production"
   }
 }
 
-module "gateway" {
-  source = "github.com/brikis98/devops-book//ch3/tofu/modules/api-gateway"
+module "test_endpoint" {
+  source = "../../modules/test-endpoint"
 
-  name = var.name
-  function_arn       = module.function.function_arn
-  api_gateway_routes = ["GET /"]
+  name     = var.name
+  endpoint = module.function.function_url
 }
