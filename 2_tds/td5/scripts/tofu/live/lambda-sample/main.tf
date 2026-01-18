@@ -28,4 +28,29 @@ module "test_endpoint" {
 
   name     = var.name
   endpoint = module.function.function_url
+
+  depends_on = [
+  time_sleep.wait_for_url_permission,
+  aws_lambda_permission.allow_public_invoke_url
+  ]
+
+}
+
+
+resource "aws_lambda_permission" "allow_public_invoke_url" {
+  statement_id           = "AllowPublicInvokeFunctionUrl"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = module.function.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+
+  depends_on = [module.function]
+}
+
+resource "time_sleep" "wait_for_url_permission" {
+  create_duration = "20s"
+  depends_on = [
+    module.function,
+    aws_lambda_permission.allow_public_invoke_url
+  ]
 }
