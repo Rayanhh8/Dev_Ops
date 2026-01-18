@@ -1,47 +1,30 @@
-name: infra-tests
-
-on:
-  push:
-    paths:
-      - "2_tds/td5/scripts/tofu/**"
-      - ".github/workflows/infra-tests.yml"
-  pull_request:
-    paths:
-      - "2_tds/td5/scripts/tofu/**"
-      - ".github/workflows/infra-tests.yml"
-
-permissions:
-  id-token: write
-  contents: read
+name: Infrastructure Tests
+on: push
 
 jobs:
-  tofu-test:
+  opentofu_test:
+    name: "Run OpenTofu tests"
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: bash
-        working-directory: 2_tds/td5/scripts/tofu/live/lambda-sample
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: ${{ secrets.TEST_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          # TODO: fill in your IAM role ARN!
+          role-to-assume: arn:aws:iam::968196829199:role/lambda-sample-tests
+          role-session-name: tests-${{ github.run_number }}-${{ github.actor }}
+          aws-region: us-east-2
 
-      - name: Install OpenTofu
-        uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_version: 1.7.0
+      - uses: opentofu/setup-opentofu@v1
 
-      - name: Init
-        run: tofu init -reconfigure
-
-      - name: Test
+      - name: Tofu Test
+        working-directory: 2_tds/td5/scripts/tofu/live/lambda-sample
         env:
-          TF_VAR_name: "lambda-sample-ci-${{ github.run_id }}"
-        run: tofu test
+          TF_VAR_name: lambda-sample-${{ github.run_id }}
+        run: |
+          tofu init -backend=false -input=false
+          tofu test -verbose

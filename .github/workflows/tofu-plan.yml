@@ -1,63 +1,50 @@
-name: tofu-plan
+name: Tofu Plan
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - "2_tds/td5/scripts/tofu/**"
+      - "2_tds/td5/scripts/tofu/live/lambda-sample/**"
       - ".github/workflows/tofu-plan.yml"
 
 permissions:
+  pull-requests: write
   id-token: write
   contents: read
-  pull-requests: write
 
 jobs:
   plan:
+    name: "Tofu Plan"
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        shell: bash
-        working-directory: 2_tds/td5/scripts/tofu/live/lambda-sample
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.PLAN_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: arn:aws:iam::968196829199:role/lambda-sample-plan
+          role-session-name: plan-${{ github.run_number }}-${{ github.actor }}
+          aws-region: us-east-2
 
-      - name: Install OpenTofu
-        uses: opentofu/setup-opentofu@v1
+      - uses: opentofu/setup-opentofu@v1
         with:
-          tofu_version: 1.7.0
+          tofu_version: 1.11.2
 
-      - name: Init
-        run: tofu init -reconfigure
-
-      - name: Plan
+      - name: tofu plan
         id: plan
-        env:
-          TF_VAR_name: "lambda-sample-pr-${{ github.event.number }}"
+        working-directory: 2_tds/td5/scripts/tofu/live/lambda-sample
         run: |
-          tofu plan -no-color | tee plan.txt
+          tofu init -no-color -input=false
+          tofu plan -no-color -input=false
 
-      - name: Comment plan on PR
-        uses: actions/github-script@v7
+      - uses: peter-evans/create-or-update-comment@v4
+        if: always()
+        env:
+          RESULT_EMOJI: ${{ steps.plan.outcome == 'success' && '✅' || '⚠️' }}
         with:
-          script: |
-            const fs = require('fs');
-            const body = fs.readFileSync('2_tds/td5/scripts/tofu/live/lambda-sample/plan.txt', 'utf8');
-            const max = 65000;
-            const trimmed = body.length > max ? body.slice(0, max) + "\n\n...trimmed..." : body;
-
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: "## OpenTofu plan\n```text\n" + trimmed + "\n```"
-            });
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## ${{ env.RESULT_EMOJI }} `tofu plan` output
+            ```
+            ${{ steps.plan.outputs.stdout }}
+            ```
