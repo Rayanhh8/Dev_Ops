@@ -5,8 +5,8 @@
 #    return {"message": "Hello from Docker!"}
 
 
-from flask import Flask, jsonify, request  # <-- Ajoute jsonify et request ici
-from flask_cors import CORS  # <--- Ajoute ça
+from flask import Flask, jsonify, request  
+from flask_cors import CORS  
 from pymongo import MongoClient
 import os
 import datetime  # <-- Ajoute ça pour la date des messages
