@@ -1,0 +1,92 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Projet ESIEE - Frontend</title>
+</head>
+<body style="text-align: center; font-family: sans-serif;">
+    <h1>Mon application DevOps est en ligne !</h1>
+    <p>Ce frontend tourne sur Nginx dans Kubernetes.</p>
+</body>
+</html> -->
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Projet ESIEE - Frontend</title>
+</head>
+<body style="text-align: center; font-family: sans-serif; padding-top: 50px;">
+    <h1>Mon application DevOps est en ligne !</h1>
+    <p>Ce frontend tourne sur Nginx dans Kubernetes.</p>
+    
+    <div style="margin-top: 20px; padding: 20px; border: 1px solid #ccc; display: inline-block;">
+        <h3>Message du Backend :</h3>
+        <p id="backend-message" style="color: blue; font-weight: bold;">Chargement...</p>
+    </div>
+
+    <script>
+        // On appelle le port 30001 (ton service backend)
+        fetch('http://localhost:30001/')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('backend-message').innerText = data;
+            })
+            .catch(error => {
+                document.getElementById('backend-message').innerText = "Erreur : Impossible de joindre le backend";
+                console.error('Erreur:', error);
+            });
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon Mini-Blog DevOps</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        #messages { list-style: none; padding: 0; width: 300px; margin: 20px auto; text-align: left; }
+        li { background: #f4f4f4; margin: 5px 0; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Livre d'Or - Projet DevOps</h1>
+    
+    <input type="text" id="msgInput" placeholder="Écrire un message...">
+    <button onclick="sendMessage()">Envoyer</button>
+
+    <h3>Derniers messages :</h3>
+    <ul id="messages"></ul>
+
+    <script>
+        const API_URL = "http://localhost:30001/messages";
+
+        async function loadMessages() {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            const list = document.getElementById('messages');
+            list.innerHTML = '';
+            data.forEach(m => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${m.date}</strong>: ${m.text}`;
+                list.appendChild(li);
+            });
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('msgInput');
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ text: input.value })
+            });
+            input.value = '';
+            loadMessages();
+        }
+
+        loadMessages();
+    </script>
+</body>
+</html>
