@@ -9,7 +9,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS  
 from pymongo import MongoClient
 import os
-import datetime  # <-- Ajoute ça pour la date des messages
+import datetime  # la date des messages
 
 app = Flask(__name__)
 CORS(app)  # <--- Ajoute ça pour autoriser le frontend
