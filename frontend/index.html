@@ -61,7 +61,8 @@
     <ul id="messages"></ul>
 
     <script>
-        const API_URL = "http://localhost:5001/messages";
+        //const API_URL = "http://localhost:5001/messages";
+        const API_URL = "/api/messages"; // Plus de localhost, plus de port !
 
         async function loadMessages() {
             const res = await fetch(API_URL);

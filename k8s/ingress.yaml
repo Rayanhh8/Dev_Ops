@@ -1,0 +1,59 @@
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: livre-dor-ingress
+#   annotations:
+#     On reste sur la réécriture simple
+#     nginx.ingress.kubernetes.io/rewrite-target: /messages
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#   - http:
+#       paths:
+#       - path: /api
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: backend-service
+#             port:
+#               number: 5000
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: frontend-service
+#             port:
+#               number: 80
+
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: livre-dor-ingress
+  annotations:
+    # On utilise cette annotation pour que /api/messages devienne /messages
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # On force l'ordre de priorité
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      # 1. Le Backend (Prioritaire grâce au chemin plus long)
+      - path: /api/?(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 5000
+      # 2. Le Frontend (La racine)
+      - path: /(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 80

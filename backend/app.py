@@ -11,6 +11,8 @@ from pymongo import MongoClient
 import os
 import datetime  # la date des messages
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 app = Flask(__name__)
 CORS(app)  # <--- Ajoute ça pour autoriser le frontend
 
